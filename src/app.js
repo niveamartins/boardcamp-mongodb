@@ -1,12 +1,12 @@
 import express from "express";
 import cors from "cors";
-import {createCategories} from "./controllers/categoriesController.js" 
+import categoriesRoutes from "./routes/categoriesRoutes.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.post("/categories", createCategories)
+app.use(categoriesRoutes)
 
 app.listen(4000)
