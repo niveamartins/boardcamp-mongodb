@@ -13,11 +13,12 @@ async function createGames(req, res) {
             })
         }
 
-        const CategoryID = new ObjectId(req.body.categoryId)
+        const CategoryOID = new ObjectId(req.body.categoryId)
         const category = await client.db("boardcamp").collection("categories").findOne({
-            _id: CategoryID
+            _id: CategoryOID
         })
 
+        
         if (category === null) {
             console.log("[ERROR GAMES INSERT]: ", "CATEGORY IS NOT REGISTERED")
             return res.status(400).send({
@@ -35,6 +36,7 @@ async function createGames(req, res) {
             })
         }
 
+        req.body.categoryId = CategoryOID
         insert("games", req.body);
         return res.sendStatus(201)
     } catch (err) {
@@ -46,9 +48,22 @@ async function createGames(req, res) {
 }
 
 async function listGames(req, res) {
-    const docs = client.db("boardcamp").collection("games").find()
     const toSend = []
-    await docs.forEach((doc)=>{
+
+    const docs = client.db("boardcamp").collection("games").aggregate([
+        {
+        $lookup: {
+            from: "categories",
+            localField: "categoryId",
+            foreignField: "_id",
+            as: "category"
+        }
+    }])
+
+    await docs.forEach((doc)=> {
+        doc.categoryName = doc.category[0].name
+        delete doc.category
+
         toSend.push(doc)
     })
 
