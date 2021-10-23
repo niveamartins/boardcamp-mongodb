@@ -39,7 +39,7 @@ async function listCategories(req, res) {
         toSend.push(doc)
     })
 
-    console.log("[CATEGORY CREATED]")
+    console.log("[CATEGORIES LIST SENT]")
     return res.status(200).send(toSend)
 }
 
