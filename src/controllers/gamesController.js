@@ -40,7 +40,7 @@ async function createGames(req, res) {
         insert("games", req.body);
         return res.sendStatus(201)
     } catch (err) {
-        console.log("[ERROR GAMES CONTROLLER]: ", err)
+        console.log("[ERROR CREATE GAMES CONTROLLER]: ", err)
         return res.status(500).send({
             message: err.message
         })
@@ -48,27 +48,34 @@ async function createGames(req, res) {
 }
 
 async function listGames(req, res) {
-    const toSend = []
+    try {
+        const toSend = []
 
-    const docs = client.db("boardcamp").collection("games").aggregate([
-        {
-        $lookup: {
-            from: "categories",
-            localField: "categoryId",
-            foreignField: "_id",
-            as: "category"
-        }
-    }])
+        const docs = client.db("boardcamp").collection("games").aggregate([
+            {
+                $lookup: {
+                    from: "categories",
+                    localField: "categoryId",
+                    foreignField: "_id",
+                    as: "category"
+                }
+            }])
 
-    await docs.forEach((doc)=> {
-        doc.categoryName = doc.category[0].name
-        delete doc.category
+        await docs.forEach((doc)=> {
+            doc.categoryName = doc.category[0].name
+            delete doc.category
 
-        toSend.push(doc)
-    })
+            toSend.push(doc)
+        })
 
-    console.log("[GAMES LIST SENT]")
-    return res.status(200).send(toSend)
+        console.log("[GAMES LIST SENT]")
+        return res.status(200).send(toSend)
+    } catch (err) {
+        console.log("[ERROR LIST GAMES CONTROLLER]: ", err)
+        return res.status(500).send({
+            message: err.message
+        })
+    }
 }
 
 

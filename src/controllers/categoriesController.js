@@ -25,7 +25,7 @@ async function createCategories(req, res) {
         insert("categories", req.body);
         return res.sendStatus(201)
     } catch (err) {
-        console.log("[ERROR CATEGORIES CONTROLLER]: ", err)
+        console.log("[ERROR CREATE CATEGORIES CONTROLLER]: ", err)
         return res.status(500).send({
             message: err.message
         })
@@ -33,14 +33,21 @@ async function createCategories(req, res) {
 }
 
 async function listCategories(req, res) {
-    const docs = client.db("boardcamp").collection("categories").find()
-    const toSend = []
-    await docs.forEach((doc)=>{
-        toSend.push(doc)
-    })
+   try { 
+       const docs = client.db("boardcamp").collection("categories").find()
+        const toSend = []
+        await docs.forEach((doc)=>{
+            toSend.push(doc)
+        })
 
-    console.log("[CATEGORIES LIST SENT]")
-    return res.status(200).send(toSend)
+        console.log("[CATEGORIES LIST SENT]")
+        return res.status(200).send(toSend)
+    } catch (err) {
+        console.log("[ERROR LIST CATEGORIES CONTROLLER]: ", err)
+        return res.status(500).send({
+            message: err.message
+        })
+    }
 }
 
 

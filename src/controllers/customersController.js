@@ -26,7 +26,7 @@ async function createCustomers(req, res) {
         insert("customers", req.body);
         return res.sendStatus(201)
     } catch (err) {
-        console.log("[ERROR CUSTOMERS CONTROLLER]: ", err)
+        console.log("[ERROR CREATE CUSTOMERS CONTROLLER]: ", err)
         return res.status(500).send({
             message: err.message
         })
@@ -34,7 +34,7 @@ async function createCustomers(req, res) {
 }
 
 async function listCustomers(req, res) {
-    const query = {}
+    try {const query = {}
 
     if(req.query.cpf) {
         query.cpf = new RegExp("^" + req.query.cpf + "[0-9]*$")
@@ -46,14 +46,58 @@ async function listCustomers(req, res) {
 
     const docs = client.db("boardcamp").collection("customers").find(query)
     const toSend = []
-    
+
     await docs.forEach((doc)=>{
         toSend.push(doc)
     })
 
     console.log("[CUSTOMERS LIST SENT]")
     return res.status(200).send(toSend)
+    } catch (err) {
+        console.log("[ERROR LIST CUSTOMERS CONTROLLER]: ", err)
+        return res.status(500).send({
+            message: err.message
+        })
+    }
 }
 
+async function updateCustomers(req, res) {
+    try {
+        const {error} = customersSchema.validate(req.body)
+        if (error) {
+            console.log("[ERROR CUSTOMERS VALIDATION]: ", error.details[0].message)
+            return res.status(400).send({
+                message: error.details[0].message
+            })
+        }
+        
+        const customer = await client.db("boardcamp").collection("customers").findOne({
+            cpf: req.body.cpf,
+            _id: {
+                    $not: {
+                        $eq: new ObjectId(req.params.id)
+                }
+            }
+        })
+        if (customer !== null) {
+            console.log("[ERROR CUSTOMERS INSERT]: ", "CPF REGISTERED IN ANOTHER CUSTOMER")
+            return res.status(409).send({
+                message: "Cpf already registered."
+            })
+        }
 
-export {createCustomers, listCustomers};
+        client.db("boardcamp").collection("customers").updateOne({
+            _id: new ObjectId(req.params.id)
+        }, {
+            $set: req.body
+        })
+        return res.sendStatus(200)
+    } catch (err) {
+        console.log("[ERROR CUSTOMERS CONTROLLER]: ", err)
+        return res.status(500).send({
+            message: err.message
+        })
+    }
+}
+
+export {createCustomers, listCustomers, updateCustomers};
